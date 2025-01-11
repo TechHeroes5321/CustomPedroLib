@@ -1,6 +1,7 @@
 package com.pedropathing.localization;
 import static com.pedropathing.follower.FollowerConstants.localizers;
 
+import com.pedropathing.localization.localizers.DriveEncoderIMULocalizer;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -79,6 +80,8 @@ public class PoseUpdater {
         switch (localizers) {
             case DRIVE_ENCODERS:
                 return new DriveEncoderLocalizer(hardwareMap);
+            case DRIVE_ENCODERS_IMU:
+                return new DriveEncoderIMULocalizer(hardwareMap);
             case TWO_WHEEL:
                 return new TwoWheelLocalizer(hardwareMap);
             case THREE_WHEEL:
