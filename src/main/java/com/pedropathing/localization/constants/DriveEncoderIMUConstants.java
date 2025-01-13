@@ -4,9 +4,9 @@ import com.pedropathing.localization.Encoder;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 
 /**
- * This is the DriveEncoderConstants class. It holds many constants and parameters for the Drive Encoder Localizer.
- * @author Baron Henderson - 20077 The Indubitables
- * @version 1.0, 12/24/2024
+ * This is the DriveEncoderIMUConstants class. It holds many constants and parameters for the Drive Encoder IMU Localizer.
+ * @author Ace - 5321 Tech Heroes
+ * @version 1.5, 12/01/2025
  */
 
 public class DriveEncoderIMUConstants {

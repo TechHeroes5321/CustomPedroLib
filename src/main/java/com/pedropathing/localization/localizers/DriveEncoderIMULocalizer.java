@@ -29,8 +29,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
  * localizer that uses the drive encoder set up with the IMU to have more accurate heading
  * readings.
  *
- * @author Anyi Lin - 10158 Scott's Bots
- * @version 1.0, 4/2/2024
+ * @author Ace - 5321 Tech Heroes
+ * @version 1.5, 1/12/2025
  */
 @Config
 public class DriveEncoderIMULocalizer extends Localizer {
