@@ -248,7 +248,7 @@ public class DriveEncoderIMULocalizer extends Localizer {
         //y/strafe movement
         returnMatrix.set(1,0, STRAFE_TICKS_TO_INCHES * (-leftFront.getDeltaPosition() + rightFront.getDeltaPosition() + leftRear.getDeltaPosition() - rightRear.getDeltaPosition()));
         // theta/turning
-        if (useIMU)
+        if (MathFunctions.getSmallestAngleDifference(0, deltaRadians) > 0.00005 && useIMU)
         {returnMatrix.set(2, 0, deltaRadians);
         } else {
             returnMatrix.set(2, 0, TURN_TICKS_TO_RADIANS * ((-leftFront.getDeltaPosition() + rightFront.getDeltaPosition() - leftRear.getDeltaPosition() + rightRear.getDeltaPosition()) / (ROBOT_WIDTH + ROBOT_LENGTH)));
