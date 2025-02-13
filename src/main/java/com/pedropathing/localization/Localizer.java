@@ -102,4 +102,8 @@ public abstract class Localizer {
     public IMU getIMU() {
         return null;
     }
+
+    public boolean isPinpointCooked() {return false;}
+
+    public void setPinpointIsCooked(boolean cooked) {}
 }

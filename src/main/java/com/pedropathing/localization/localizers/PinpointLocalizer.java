@@ -18,6 +18,8 @@ import com.pedropathing.pathgen.MathFunctions;
 import com.pedropathing.pathgen.Vector;
 import com.pedropathing.util.NanoTimer;
 
+import java.util.Objects;
+
 /**
  * This is the Pinpoint class. This class extends the Localizer superclass and is a
  * localizer that uses the two wheel odometry set up with the IMU to have more accurate heading
@@ -57,7 +59,8 @@ public class PinpointLocalizer extends Localizer {
     private long deltaTimeNano;
     private NanoTimer timer;
     private Pose currentVelocity;
-    private Pose previousPinpointPose;
+    private Pose pinpointPose;
+    private boolean pinpointCooked = false;
 
     /**
      * This creates a new PinpointLocalizer from a HardwareMap, with a starting Pose at (0,0)
@@ -97,10 +100,11 @@ public class PinpointLocalizer extends Localizer {
         setStartPose(setStartPose);
         totalHeading = 0;
         timer = new NanoTimer();
-        previousPinpointPose = new Pose();
+        pinpointPose = startPose;
         currentVelocity = new Pose();
         deltaTimeNano = 1;
         previousHeading = setStartPose.getHeading();
+
     }
 
     /**
@@ -110,7 +114,7 @@ public class PinpointLocalizer extends Localizer {
      */
     @Override
     public Pose getPose() {
-        return MathFunctions.addPoses(startPose, MathFunctions.rotatePose(previousPinpointPose, startPose.getHeading(), false));
+        return pinpointPose.copy();
     }
 
     /**
@@ -141,6 +145,13 @@ public class PinpointLocalizer extends Localizer {
      */
     @Override
     public void setStartPose(Pose setStart) {
+        if (!Objects.equals(startPose, new Pose()) && startPose != null) {
+            Pose currentPose = MathFunctions.subtractPoses(MathFunctions.rotatePose(pinpointPose, -startPose.getHeading(), false), startPose);
+            setPose(MathFunctions.addPoses(setStart, MathFunctions.rotatePose(currentPose, setStart.getHeading(), false)));
+        } else {
+            setPose(setStart);
+        }
+
         this.startPose = setStart;
     }
 
@@ -152,26 +163,25 @@ public class PinpointLocalizer extends Localizer {
      */
     @Override
     public void setPose(Pose setPose) {
-        Pose setNewPose = MathFunctions.subtractPoses(setPose, startPose);
-        odo.setPosition(new Pose2D(DistanceUnit.INCH, setNewPose.getX(), setNewPose.getY(), AngleUnit.RADIANS, setNewPose.getHeading()));
+        odo.setPosition(new Pose2D(DistanceUnit.INCH, setPose.getX(), setPose.getY(), AngleUnit.RADIANS, setPose.getHeading()));
+        pinpointPose = setPose;
+        previousHeading = setPose.getHeading();
     }
 
     /**
      * This updates the total heading of the robot. The Pinpoint handles all other updates itself.
      */
-    @RequiresApi(api = Build.VERSION_CODES.GINGERBREAD)
     @Override
     public void update() {
         deltaTimeNano = timer.getElapsedTime();
         timer.resetTimer();
         odo.update();
-        Pose2D pinpointPose = odo.getPosition();
-        Pose currentPinpointPose = new Pose(pinpointPose.getX(DistanceUnit.INCH), pinpointPose.getY(DistanceUnit.INCH), pinpointPose.getHeading(AngleUnit.RADIANS));
+        Pose currentPinpointPose = getPoseEstimate(odo.getPosition(), pinpointPose, deltaTimeNano);
         totalHeading += MathFunctions.getSmallestAngleDifference(currentPinpointPose.getHeading(), previousHeading);
         previousHeading = currentPinpointPose.getHeading();
-        Pose deltaPose = MathFunctions.subtractPoses(currentPinpointPose, previousPinpointPose);
+        Pose deltaPose = MathFunctions.subtractPoses(currentPinpointPose, pinpointPose);
         currentVelocity = new Pose(deltaPose.getX() / (deltaTimeNano / Math.pow(10.0, 9)), deltaPose.getY() / (deltaTimeNano / Math.pow(10.0, 9)), deltaPose.getHeading() / (deltaTimeNano / Math.pow(10.0, 9)));
-        previousPinpointPose = currentPinpointPose;
+        pinpointPose = currentPinpointPose;
     }
 
     /**
@@ -228,12 +238,6 @@ public class PinpointLocalizer extends Localizer {
     @Override
     public void resetIMU() throws InterruptedException {
         odo.recalibrateIMU();
-
-        try {
-            Thread.sleep(300);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     /**
@@ -247,5 +251,27 @@ public class PinpointLocalizer extends Localizer {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private Pose getPoseEstimate(Pose2D pinpointEstimate, Pose currentPose, long deltaTime) {
+        if (Double.isNaN(pinpointEstimate.getX(DistanceUnit.INCH)) || Double.isNaN(pinpointEstimate.getY(DistanceUnit.INCH)) || Double.isNaN(pinpointEstimate.getHeading(AngleUnit.RADIANS))) {
+            pinpointCooked = true;
+            return MathFunctions.addPoses(currentPose, new Pose(currentVelocity.getX() * deltaTime / Math.pow(10, 9), currentVelocity.getY() * deltaTime / Math.pow(10, 9), currentVelocity.getHeading() * deltaTime / Math.pow(10, 9)));
+        }
+
+        Pose estimate = new Pose(pinpointEstimate.getX(DistanceUnit.INCH), pinpointEstimate.getY(DistanceUnit.INCH), pinpointEstimate.getHeading(AngleUnit.RADIANS));
+
+        if (estimate.roughlyEquals(new Pose(), 0.002)) {
+            pinpointCooked = true;
+            return MathFunctions.addPoses(currentPose, new Pose(currentVelocity.getX() * deltaTime / Math.pow(10, 9), currentVelocity.getY() * deltaTime / Math.pow(10, 9), currentVelocity.getHeading() * deltaTime / Math.pow(10, 9)));
+        }
+
+        pinpointCooked = false;
+        return estimate;
+    }
+
+    @Override
+    public boolean isPinpointCooked() {
+        return pinpointCooked;
     }
 }

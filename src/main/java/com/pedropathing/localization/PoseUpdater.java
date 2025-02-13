@@ -60,9 +60,12 @@ public class PoseUpdater {
         this.hardwareMap = hardwareMap;
         this.localizer = localizer;
 
-        try {
-            localizer.resetIMU();
-        } catch (InterruptedException ignored) {}
+        if (localizer.getClass() != PinpointLocalizer.class) {
+            try {
+                localizer.resetIMU();
+            } catch (InterruptedException ignored) {
+            }
+        }
 
         imu = localizer.getIMU();
     }

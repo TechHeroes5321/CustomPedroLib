@@ -8,7 +8,7 @@ Follow the steps on our [website](https://pedropathing.com/) to setup your proje
 
 
 [![Latest Pedro Version](https://img.shields.io/badge/dynamic/xml?url=https%3A%2F%2Fpedro-pathing.github.io%2Fmaven.pedropathing.com%2Fcom%2Fpedropathing%2Fpedro%2Fmaven-metadata.xml&query=%2Fmetadata%2Fversioning%2Flatest&style=for-the-badge&label=Build&labelColor=111111&color=7b39ab)](https://github.com/Pedro-Pathing/)
-
+<!--
 ---
 
 # Release History
@@ -18,7 +18,7 @@ Follow the steps on our [website](https://pedropathing.com/) to setup your proje
 Library: https://github.com/Pedro-Pathing/PedroPathing/releases/tag/v1.0.3
 Quickstart: https://github.com/Pedro-Pathing/Quickstart/releases/tag/v1.0.3
 
-- Fixed a bug that caused follower constants to be updated by user input AFTER follower was already created, causing hardwareMap issues.
+- Fixed a  bug that caused follower constants to be updated by user input AFTER follower was already created, causing hardwareMap issues.
 - Removed 2 Parameters from Follower and PoseUpdater (two classes), now you have to call `Constants.setConstants(FConstants.class, LConstants.class);` before initalizing the Follower.
 - Added Power Caching
 
